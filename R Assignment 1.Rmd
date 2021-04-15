@@ -1,0 +1,153 @@
+---
+title: "R Analysis by Group 3"
+output: pdf_document
+header-includes:
+- \usepackage{fancyhdr}
+- \pagestyle{fancy}
+- \fancyhead[CO,CE]{Group 3- Assignment 1 R Analysis}
+- \fancyfoot[CO,CE]{https://github.com/taslima92/Group3-RAssignment.git}
+---
+## Installation Process
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(janitor) # janitor helps us clean datasets
+library(here) # here helps us to know where files are
+library(dbplyr)
+library(ggplot2)
+library("ggpubr")
+```
+
+## Load data
+## This is a COVID data set downloaded from Google Dataset
+```{r COVID-19}
+COVID19data <- readr::read_csv(file ="https://data.ontario.ca/dataset/f4112442-bdc8-45d2-be3c-12efae72fb27/resource/455fd63b-603d-4608-8216-7d8647f43350/download/conposcovidloc.csv")
+```
+## print structure of dataset
+```{r}
+str(COVID19data)
+```
+## list of variables of dataset
+```{r}
+names(COVID19data)
+```
+## print top 15 data
+```{r}
+head(COVID19data,15)
+```
+## user defined function
+```{r}
+odd_even_id<- function(id){
+  ifelse(((id %%2) ==0),"Odd","Even")
+}
+odd_even_id(COVID19data$Row_ID)
+```
+## Filter Row
+```{r}
+COVID19data %>% filter(COVID19data$Age_Group == "UNKNOWN")
+  
+```
+##Identify the dependent & independent variables and use reshaping techniques 
+```{r}
+Covid19NewData = as.data.frame(COVID19data %>% select(Row_ID, Accurate_Episode_Date, Case_Reported_Date, Age_Group, Client_Gender))
+print(Covid19NewData)
+```
+##Remove missing values
+```{r}
+COVID19data %>% filter(is.na(Outbreak_Related))
+```
+## Identify and remove duplicate data
+```{r}
+COVID19data[!duplicated(COVID19data$Reporting_PHU_ID),]
+```
+## Reorder Multiple Rows
+```{r}
+COVID19data %>% arrange(desc(COVID19data$Age_Group,COVID19data@Reporting_PHU_Postal_Code))
+```
+## Rename Columns
+```{r}
+COVID19data %>% rename(Accurate_Date = Accurate_Episode_Date, 
+                       Report_Date = Case_Reported_Date,
+                       Test_Date = Test_Reported_Date)
+```
+##Adding new variables in  data frame by using a mathematical function
+```{r}
+COVID19data %>% mutate(Division_of_PHU_Lat = Reporting_PHU_Latitude/2)
+```
+##Creating a training set using random number generator engine.
+```{r}
+set.seed(5678)
+COVID19data %>% sample_n(9,replace = FALSE)
+```
+##Printing the summary statistics of dataset.
+```{r}
+summary(COVID19data)
+```
+##Mean
+```{r}
+ PHUmean <- mean(COVID19data$Reporting_PHU_ID)
+print(PHUmean)
+```
+##Median
+```{r}
+PHUmedian <- median(COVID19data$Reporting_PHU_ID)
+print(PHUmedian)
+```
+##Mode
+```{r}
+PHUmode <- COVID19data$Reporting_PHU_ID[which.max(COVID19data$Reporting_PHU_ID)]
+print(PHUmode)
+```
+##Range
+```{r}
+PHUrange <- range(COVID19data$Reporting_PHU_ID)
+print(PHUrange)
+```
+## Scatter Plot
+```{r}
+ggplot(COVID19data, aes(x=Reporting_PHU_Latitude, y=Reporting_PHU_Longitude )) + geom_point(size = 1.2, color = "red", shape = 21)
+```
+## Bar plot
+```{r}
+ggplot(data = COVID19data,aes(x = Reporting_PHU_Latitude,fill = factor(Reporting_PHU_Latitude)))+geom_bar()
+```
+
+
+
+## correlation
+```{r}
+X = COVID19data[,"Reporting_PHU_Latitude"]
+Y = COVID19data[,"Reporting_PHU_Longitude"]
+CORRELATION = cor(Y,X,method = "pearson")
+CORRELATION
+```
+## graph in correlation
+```{r}
+ ggscatter(COVID19data, x= "Reporting_PHU_Latitude", y="Reporting_PHU_Longitude",combine = FALSE,
+           merge = FALSE,
+           add = "reg.line", conf.int = TRUE, cor.coef = TRUE, cor.method = "pearson",
+           xlab= "Reporting_PHU_Latitude", ylab = "Reporting_PHU_Longitude")
+```
+
+
+
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
